@@ -1,0 +1,23 @@
+modLoader = "javafml"
+loaderVersion = "[21,)"
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "foldedhorizons-ae2"
+version = "${mod_version}"
+displayName = "Folded Horizons ae2"
+description = "Folded Horizons integration module (ae2). Optional add-on for the Folded Horizons core mod."
+
+[[dependencies.foldedhorizons-ae2]]
+    modId = "neoforge"
+    type = "required"
+    versionRange = "[21.1.0,)"
+    ordering = "AFTER"
+    side = "BOTH"
+
+[[dependencies.foldedhorizons-ae2]]
+    modId = "foldedhorizons"
+    type = "required"
+    versionRange = "[0.1.0,)"
+    ordering = "AFTER"
+    side = "BOTH"

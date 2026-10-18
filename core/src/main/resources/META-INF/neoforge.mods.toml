@@ -1,0 +1,26 @@
+modLoader="javafml"
+loaderVersion="[21,)"
+license="All Rights Reserved"
+
+[[mods]]
+modId="foldedhorizons"
+version="0.1.0"
+displayName="Folded Horizons Core"
+authors="FoldedHorizons Team"
+description='''
+Root spaces, exploit pocket dimensions, and compact-space machines for the Folded Horizons modpack.
+'''
+
+[[dependencies.foldedhorizons]]
+    modId="neoforge"
+    type="required"
+    versionRange="[21.1.0,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.foldedhorizons]]
+    modId="minecraft"
+    type="required"
+    versionRange="[1.21,1.22)"
+    ordering="NONE"
+    side="BOTH"

@@ -1,0 +1,27 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '1.0.21'
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = "foldedhorizons-ae2"
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+dependencies {
+    api project(':core')
+}
+
+neoForge {
+    version = project.neo_version
+
+    mods {
+        "foldedhorizons-$m" {
+            sourceSet sourceSets.main
+        }
+    }
+}
