@@ -1,0 +1,177 @@
+package dev.foldedhorizons.core.tools;
+
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntArrayTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtIo;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Dev-time generator for the pocket structure templates shipped in the mod
+ * jar: {@code data/foldedhorizons/structure/starter_cell.nbt} and
+ * {@code lobby.nbt}.
+ *
+ * <p>Why this hand-assembles the NBT instead of calling
+ * {@code StructureTemplate}: filling a StructureTemplate headlessly needs a
+ * live world ({@code fillFromWorld}) or reflective access to private state,
+ * neither of which works in a plain JVM run. The output below is byte-for-byte
+ * the format {@code StructureTemplate#save} writes (gzip-compressed root
+ * compound with {@code size}, {@code blocks}, {@code palette}, {@code
+ * entities}, {@code DataVersion}), so the vanilla structure placement path
+ * reads it unchanged.</p>
+ *
+ * <p>Air blocks are included (vanilla templates do the same) so placing a
+ * pocket over a previously touched region still clears the interior.</p>
+ *
+ * <p>Run via the {@code generateTemplates} Gradle task, or directly:
+ * {@code java -cp <runtime classpath> dev.foldedhorizons.core.tools.TemplateGenerator
+ * [output-dir]} — default output is
+ * {@code core/src/main/resources/data/foldedhorizons/structure}.</p>
+ */
+public final class TemplateGenerator {
+
+    /** 1.21.1 data version; readers reject templates from newer versions. */
+    private static final int DATA_VERSION = 3955;
+
+    private static final String SHELL = "foldedhorizons:wall_shell";
+    private static final String STONE = "foldedhorizons:wall_stone";
+    private static final String WOOD = "foldedhorizons:wall_wood";
+    private static final String METAL = "foldedhorizons:wall_metal";
+
+    public static void main(String[] args) throws IOException {
+        Path outDir = args.length > 0
+                ? Paths.get(args[0])
+                : Paths.get("core/src/main/resources/data/foldedhorizons/structure");
+        Files.createDirectories(outDir);
+        write(outDir, "starter_cell.nbt", starterCell());
+        write(outDir, "lobby.nbt", lobby());
+    }
+
+    private static void write(Path dir, String name, CompoundTag template) throws IOException {
+        Path file = dir.resolve(name);
+        NbtIo.writeCompressed(template, file);
+        System.out.println("wrote " + file.toAbsolutePath());
+    }
+
+    /**
+     * Sealed starter cell: 13x13x9 shell, 9x9 interior. Bottom and top caps
+     * plus the outer ring are unbreakable {@code wall_shell}; the inner ring
+     * the player mines is {@code wall_stone}/{@code wall_wood}/
+     * {@code wall_metal}; floor is {@code wall_stone}. No crafting table;
+     * a flower pot stands in for the bonsai pot until it is implemented.
+     */
+    public static CompoundTag starterCell() {
+        Builder b = new Builder(13, 9, 13);
+        for (int y = 0; y < 9; y++) {
+            for (int x = 0; x < 13; x++) {
+                for (int z = 0; z < 13; z++) {
+                    boolean outer = x == 0 || x == 12 || z == 0 || z == 12;
+                    boolean innerRing = x == 1 || x == 11 || z == 1 || z == 11;
+                    if (outer) {
+                        b.set(x, y, z, SHELL);
+                    } else if (innerRing) {
+                        b.set(x, y, z, innerWall(x, z));
+                    } else if (y == 1) {
+                        b.set(x, y, z, STONE); // interior floor
+                    } else {
+                        b.set(x, y, z, "minecraft:air");
+                    }
+                }
+            }
+        }
+        b.set(6, 2, 6, "minecraft:flower_pot"); // bonsai pot placeholder
+        b.set(3, 2, 3, "minecraft:lantern");    // only light source
+        return b.build();
+    }
+
+    /**
+     * Lobby plaza: 32x32 open platform, iron-block border, flush grid of
+     * routing markers every 8 blocks, lit corner pillars, clear center for
+     * player-placed breachers and trade posts.
+     */
+    public static CompoundTag lobby() {
+        Builder b = new Builder(32, 4, 32);
+        for (int x = 0; x < 32; x++) {
+            for (int z = 0; z < 32; z++) {
+                boolean border = x == 0 || x == 31 || z == 0 || z == 31;
+                if (border) {
+                    b.set(x, 0, z, "minecraft:iron_block");
+                } else if (x % 8 == 0 && z % 8 == 0) {
+                    b.set(x, 0, z, "minecraft:light_gray_concrete"); // routing marker
+                } else {
+                    b.set(x, 0, z, "minecraft:stone_bricks");
+                }
+            }
+        }
+        for (int[] p : new int[][]{{2, 2}, {29, 2}, {2, 29}, {29, 29}}) {
+            b.set(p[0], 1, p[1], "minecraft:stone_bricks");
+            b.set(p[0], 2, p[1], "minecraft:stone_bricks");
+            b.set(p[0], 3, p[1], "minecraft:lantern");
+        }
+        return b.build();
+    }
+
+    private static String innerWall(int x, int z) {
+        boolean xEdge = x == 1 || x == 11;
+        boolean zEdge = z == 1 || z == 11;
+        if (xEdge && zEdge) {
+            return METAL; // corners
+        }
+        return xEdge ? WOOD : STONE;
+    }
+
+    /** Accumulates non-air-deduplicated palette entries and block positions. */
+    private static final class Builder {
+        private final int sx;
+        private final int sy;
+        private final int sz;
+        private final Map<String, Integer> palette = new HashMap<>();
+        private final ListTag paletteList = new ListTag();
+        private final ListTag blocks = new ListTag();
+
+        Builder(int sx, int sy, int sz) {
+            this.sx = sx;
+            this.sy = sy;
+            this.sz = sz;
+        }
+
+        void set(int x, int y, int z, String block) {
+            String key = block;
+            Integer index = palette.get(key);
+            if (index == null) {
+                CompoundTag entry = new CompoundTag();
+                entry.putString("Name", block);
+                index = paletteList.size();
+                palette.put(key, index);
+                paletteList.add(entry);
+            }
+            CompoundTag blockTag = new CompoundTag();
+            blockTag.put("pos", pos(x, y, z));
+            blockTag.put("state", IntTag.valueOf(index));
+            blocks.add(blockTag);
+        }
+
+        CompoundTag build() {
+            CompoundTag root = new CompoundTag();
+            root.putIntArray("size", new int[]{sx, sy, sz});
+            root.put("palette", paletteList);
+            root.put("entities", new ListTag());
+            root.put("blocks", blocks);
+            root.putInt("DataVersion", DATA_VERSION);
+            return root;
+        }
+
+        private IntArrayTag pos(int x, int y, int z) {
+            return new IntArrayTag(new int[]{x, y, z});
+        }
+    }
+
+    private TemplateGenerator() {}
+}

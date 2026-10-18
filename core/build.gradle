@@ -37,3 +37,14 @@ neoForge {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+// Regenerates data/foldedhorizons/structure/{starter_cell,lobby}.nbt in place.
+// The templates live in resources (datapack-overridable); rerun this after
+// editing dev.foldedhorizons.core.tools.TemplateGenerator.
+tasks.register('generateTemplates', JavaExec) {
+    group = 'foldedhorizons'
+    description = 'Regenerates the pocket structure templates into src/main/resources.'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'dev.foldedhorizons.core.tools.TemplateGenerator'
+    args = [file('src/main/resources/data/foldedhorizons/structure').absolutePath]
+}

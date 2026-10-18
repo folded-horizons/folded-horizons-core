@@ -14,8 +14,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public final class ModBlockEntities {
 
     public static final DeferredRegister<BlockEntityType<?>> REGISTER =
-            DeferredRegister.create("foldedhorizons",
-                    net.minecraft.core.registries.Registries.BLOCK_ENTITY_TYPE);
+            DeferredRegister.create(
+                    net.minecraft.core.registries.Registries.BLOCK_ENTITY_TYPE,
+                    "foldedhorizons");
 
     private ModBlockEntities() {}
 

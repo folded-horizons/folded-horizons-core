@@ -1,5 +1,6 @@
 package dev.foldedhorizons.core.setup;
 
+import dev.foldedhorizons.core.FoldedHorizons;
 import dev.foldedhorizons.core.machine.BreacherBlock;
 import dev.foldedhorizons.core.machine.RootBinderBlock;
 import dev.foldedhorizons.core.machine.TradePostBlock;

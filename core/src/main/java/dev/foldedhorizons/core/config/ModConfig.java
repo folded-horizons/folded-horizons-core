@@ -50,7 +50,7 @@ public final class ModConfig {
                         "e.g. \"EV:33\", \"IV:49\", \"LuV:65\"")
                 .defineListAllowEmpty("pocket.expansionThresholds",
                         java.util.List.of("EV:33", "IV:49", "LuV:65"),
-                        () -> true);
+                        o -> true);
 
         SPEC = builder.build();
     }
