@@ -1,0 +1,14 @@
+{
+  "name": "Folded Horizons Core (mod build)",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {},
+    "ghcr.io/devcontainers/features/java:1": {
+      "installGradle": true,
+      "installMaven": false,
+      "version": "21"
+    }
+  },
+  "forwardPorts": [25565, 8100],
+  "postCreateCommand": "gradle --version"
+}
