@@ -15,6 +15,3 @@ plugins {
 rootProject.name = 'foldedhorizons'
 
 include 'core'
-include 'ae2'
-include 'gt'
-include 'ftb'
