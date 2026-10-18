@@ -18,8 +18,10 @@ import net.neoforged.fml.common.Mod;
  * them (Dimensional Breacher, Root Binder, Trade Post).</p>
  *
  * <p>Constructor registers all DeferredRegister holders ({@link ModBlocks}, {@link ModItems}, {@link ModBlockEntities}) on the
- * mod event bus. Gameplay wiring (grid allocation, pocket lifecycle, AE2
- * bridging) lands in later passes.</p>
+ * mod event bus. Materialization + claim/identity SPIs (build-order 4) are
+ * self-wiring: {@code ServerLifecycle} is an {@code @EventBusSubscriber} and
+ * the SPI defaults are no-op/fallback singletons until a module registers
+ * its adapter.</p>
  */
 @Mod(FoldedHorizons.MOD_ID)
 public class FoldedHorizons {
@@ -30,8 +32,10 @@ public class FoldedHorizons {
         ModBlocks.REGISTER.register(modEventBus);
         ModItems.REGISTER.register(modEventBus);
         ModBlockEntities.REGISTER.register(modEventBus);
-        // TODO: register creative tab, network payloads, SavedData attachments,
-        //       and AE2 integration listeners (ModConfig is wired via the
-        //       modContainer in a later pass).
+        // Materialization/claim/identity SPIs default to no-op + built-in
+        // parties; foldedhorizons-ftb overrides them via
+        // TeamIdentityProvider.register / ClaimAdapter.register at its own
+        // construction. The ServerStarted hook (ServerLifecycle) self-registers
+        // via @EventBusSubscriber — no explicit wiring needed here.
     }
 }
