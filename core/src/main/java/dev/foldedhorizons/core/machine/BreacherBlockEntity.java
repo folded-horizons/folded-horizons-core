@@ -193,7 +193,7 @@ public class BreacherBlockEntity extends BlockEntity {
             lobby = new PocketInstance(PocketType.SPECIAL, PocketDimensions.VOID_SPACE,
                     PocketGrid.LOBBY_CELL, player.getUUID(),
                     PocketInstance.OwnerKind.PLAYER, true, "", -1, null, null,
-                    System.currentTimeMillis());
+                    System.currentTimeMillis(), false, 0);
         }
         if (!charge(player, BREACH_COST_ROOT_OR_LOBBY)) {
             return false;

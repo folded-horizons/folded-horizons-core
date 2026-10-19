@@ -247,7 +247,7 @@ public class PocketRegistry extends SavedData {
             cursorByDim.put(dimension, i + 1);
             PocketInstance instance = new PocketInstance(type, dimension, key, owner,
                     ownerKind, false, body, type == PocketType.UNSTABLE ? 0 : -1,
-                    null, null, System.currentTimeMillis());
+                    null, null, System.currentTimeMillis(), false, 0);
             dimCells.put(key, instance);
             registerOwner(owner, key);
             setDirty();
@@ -293,7 +293,7 @@ public class PocketRegistry extends SavedData {
             teamTierCursor.put(cursorKey, key);
             PocketInstance instance = new PocketInstance(PocketType.UNSTABLE, dimension,
                     key, teamUuid, PocketInstance.OwnerKind.TEAM, false, "", 0, null, null,
-                    System.currentTimeMillis());
+                    System.currentTimeMillis(), false, 0);
             dimCells.put(key, instance);
             registerOwner(teamUuid, key);
             setDirty();
@@ -322,6 +322,26 @@ public class PocketRegistry extends SavedData {
             }
         }
         return allocate(dimension, owner, ownerKind, PocketType.SPECIAL, body, maxScan);
+    }
+
+    /**
+     * Record that a pocket reached the next rung of the expansion ladder
+     * (walls-expansion.md "Root space expansion"). Bumps
+     * {@code expansion_stage} and persists; the shell-growing geometry is
+     * applied by {@code PocketGrid.expandInterior} at the call site, not here
+     * — the registry only owns state.
+     *
+     * @return the updated instance, or null if the cellKey is unknown
+     */
+    public PocketInstance expandRoot(ResourceKey<Level> dimension, String cellKey) {
+        Map<String, PocketInstance> dimCells = cells.get(dimension);
+        PocketInstance instance = dimCells == null ? null : dimCells.get(cellKey);
+        if (instance == null) {
+            return null;
+        }
+        PocketInstance expanded = instance.withExpansionStage(instance.expansionStage() + 1);
+        put(dimension, expanded);
+        return expanded;
     }
 
     /**

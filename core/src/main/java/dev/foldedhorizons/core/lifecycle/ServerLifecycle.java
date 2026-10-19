@@ -8,6 +8,8 @@ import dev.foldedhorizons.core.dimension.PocketRegistry;
 import dev.foldedhorizons.core.dimension.PocketType;
 import dev.foldedhorizons.core.dimension.UnstablePocketWatcher;
 import dev.foldedhorizons.core.identity.BuiltInPartyRegistry;
+import dev.foldedhorizons.core.identity.BuiltInTierProvider;
+import dev.foldedhorizons.core.identity.TierProviders;
 import dev.foldedhorizons.core.identity.TeamIdentityProvider;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -40,6 +42,11 @@ public final class ServerLifecycle {
         // Activate the built-in party fallback against its persisted SavedData
         // (solo players resolve without it; party members need the loaded map).
         TeamIdentityProvider.register(BuiltInPartyRegistry.getOrCreate(server));
+        // Reset the TierProvider to the built-in "nobody qualifies" default so
+        // a /reload or dimension removal cannot leave a stale module provider
+        // answering before its module re-registers (modules re-register on
+        // their own mod-construction lifecycle).
+        TierProviders.register(BuiltInTierProvider.INSTANCE);
         Materializer.materializeLobby(voidSpace);
         UnstablePocketWatcher.sweepDyingCells(server, registry);
         for (PocketInstance pocket : registry.cellsIn(PocketDimensions.VOID_SPACE).values()) {
