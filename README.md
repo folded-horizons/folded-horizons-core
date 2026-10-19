@@ -13,9 +13,10 @@ Pack-side docs (spec, design) live in the pack repo under `docs/`.
 ## What it is
 
 `foldedhorizons` — pocket grid/registry, Breacher, Root Binder, Dim-Gen,
-Trade Post, Temp Keys, walls, expansion. Zero integration code: runs
-standalone, with built-in fallbacks (plain-inventory trading, built-in
-parties).
+Temp Keys, walls, expansion. Zero integration code: runs standalone,
+with built-in fallbacks (crate-based lobby trading, built-in parties).
+Networked ME trading is provided by the AE2 module; the Trade Post's
+crate flow works without any module.
 
 Integration modules are separate mods, released separately:
 
