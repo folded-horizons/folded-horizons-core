@@ -3,6 +3,7 @@ package dev.foldedhorizons.core.setup;
 import dev.foldedhorizons.core.FoldedHorizons;
 import dev.foldedhorizons.core.block.StarterWallBlock;
 import dev.foldedhorizons.core.machine.BreacherBlock;
+import dev.foldedhorizons.core.machine.DimensionGenMultiblockBlock;
 import dev.foldedhorizons.core.machine.RootBinderBlock;
 import dev.foldedhorizons.core.machine.TradePostBlock;
 import net.minecraft.world.level.block.Block;
@@ -42,6 +43,14 @@ public final class ModBlocks {
                     () -> new TradePostBlock(BlockBehaviour.Properties.of()
                             .mapColor(MapColor.METAL)
                             .strength(3.0f, 1200.0f)
+                            .requiresCorrectToolForDrops()));
+
+    /** Dimension-gen multiblock controller (GT stand-in — decision #13). */
+    public static final DeferredHolder<Block, DimensionGenMultiblockBlock> DIMENSION_GEN =
+            REGISTER.register("dimension_gen_multiblock",
+                    () -> new DimensionGenMultiblockBlock(BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.METAL)
+                            .strength(4.0f, 1200.0f)
                             .requiresCorrectToolForDrops()));
 
     // ------------------------------------------------------------------

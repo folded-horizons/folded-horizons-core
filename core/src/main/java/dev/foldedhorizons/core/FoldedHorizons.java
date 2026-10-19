@@ -33,8 +33,13 @@ public class FoldedHorizons {
         ModItems.REGISTER.register(modEventBus);
         ModBlockEntities.REGISTER.register(modEventBus);
         // Capability wiring: breacher's FE buffer (energy storage) is
-        // registered by the static hook below.
+        // registered by the static hook below; the dimension-gen machine's
+        // buffer rides the same event class pattern.
         modEventBus.register(dev.foldedhorizons.core.machine.BreacherBlock.class);
+        modEventBus.register(dev.foldedhorizons.core.machine.DimensionGenMultiblockBlock.class);
+        // Permanent pocket chunk loading (docs "Claiming" policy): the
+        // re-arm hook registers itself on the NeoForge bus.
+        dev.foldedhorizons.core.dimension.PocketChunkLoader.register();
         // Materialization/claim/identity SPIs default to no-op + built-in
         // parties; foldedhorizons-ftb overrides them via
         // TeamIdentityProvider.register / ClaimAdapter.register at its own

@@ -52,6 +52,7 @@ public final class TemplateGenerator {
         Files.createDirectories(outDir);
         write(outDir, "starter_cell.nbt", starterCell());
         write(outDir, "lobby.nbt", lobby());
+        write(outDir, "meteorite_pocket.nbt", meteoritePocket());
     }
 
     private static void write(Path dir, String name, CompoundTag template) throws IOException {
@@ -125,6 +126,42 @@ public final class TemplateGenerator {
             return METAL; // corners
         }
         return xEdge ? WOOD : STONE;
+    }
+
+    /**
+     * Demo meteorite pocket (dimension-gen multiblock's one dedicated
+     * target): a ~9x9 rock cluster rising from a small crater floor, with
+     * a chest of demo loot and a light. Core owns no AE2 blocks, so the
+     * "skystone" is placeholder stone and the loot is plain — the
+     * foldedhorizons-ae2 module or a datapack replaces this template with
+     * the real skystone crust, Inscriber Presses and budding certus patch
+     * under the same id ({@code foldedhorizons:meteorite_pocket}).
+     */
+    public static CompoundTag meteoritePocket() {
+        Builder b = new Builder(9, 6, 9);
+        for (int x = 0; x < 9; x++) {
+            for (int z = 0; z < 9; z++) {
+                b.set(x, 0, z, STONE); // crater floor
+            }
+        }
+        // The meteorite blob: a dome-ish cluster of "skystone" placeholder.
+        int[][] layers = {
+                {2, 6, 2, 6},   // y=1: 5x5 base (x..x, z..z inclusive)
+                {3, 5, 3, 5},   // y=2: 3x3
+                {4, 4, 4, 4},   // y=3: 1x1 tip
+        };
+        for (int i = 0; i < layers.length; i++) {
+            int[] layer = layers[i];
+            for (int x = layer[0]; x <= layer[1]; x++) {
+                for (int z = layer[2]; z <= layer[3]; z++) {
+                    b.set(x, 1 + i, z, METAL);
+                }
+            }
+        }
+        // Demo loot + light at the crater edge.
+        b.set(1, 1, 1, "minecraft:chest");
+        b.set(7, 1, 7, "minecraft:lantern");
+        return b.build();
     }
 
     /** Accumulates non-air-deduplicated palette entries and block positions. */
