@@ -254,10 +254,10 @@ public class TradePostBlockEntity extends BlockEntity {
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         if (tag.contains(KEY_INPUT)) {
-            input.deserializeNBT(registries, tag.get(KEY_INPUT));
+            input.deserializeNBT(registries, tag.getCompound(KEY_INPUT));
         }
         if (tag.contains(KEY_OUTPUT)) {
-            output.deserializeNBT(registries, tag.get(KEY_OUTPUT));
+            output.deserializeNBT(registries, tag.getCompound(KEY_OUTPUT));
         }
         loadIndexedStacks(tag.getList(KEY_OFFERS, Tag.TAG_COMPOUND), offers, registries);
         loadIndexedStacks(tag.getList(KEY_WANTS, Tag.TAG_COMPOUND), wants, registries);
@@ -272,7 +272,7 @@ public class TradePostBlockEntity extends BlockEntity {
             }
             CompoundTag entry = new CompoundTag();
             entry.putByte("slot", (byte) i);
-            entry.put("item", ItemStack.save(stacks[i], registries));
+            entry.put("item", stacks[i].save(registries));
             list.add(entry);
         }
         return list;
