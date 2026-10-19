@@ -19,6 +19,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import dev.foldedhorizons.core.event.ModEvents;
+import dev.foldedhorizons.core.setup.ModBlocks;
 import java.util.List;
 
 /**
@@ -68,6 +70,12 @@ public class StarterWallBlock extends Block {
         level.setBlock(pos, state, Block.UPDATE_ALL);
 
         if (level instanceof ServerLevel serverLevel) {
+            if (state.is(ModBlocks.WALL_SHELL.get())) {
+                // Shell blocks are unbreakable in survival (destroyTime -1);
+                // reaching playerDestroy at all means a late-game/cheat path
+                // broke through — the reserved shell_broken event.
+                ModEvents.shellBroken(serverLevel, pos.immutable(), player.getUUID());
+            }
             chip(serverLevel, player, pos, tool);
         }
     }
