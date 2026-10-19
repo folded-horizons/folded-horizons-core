@@ -105,6 +105,23 @@ public class PocketRegistry extends SavedData {
         }
     }
 
+    /** The queued conversion for a cellKey, or null. Read-only accessor. */
+    public PendingConversion pendingConversionFor(String cellKey) {
+        return pendingConversions.get(cellKey);
+    }
+
+    /** All pending conversions, read-only view (breacher refusal checks). */
+    public Map<String, PendingConversion> pendingConversionsView() {
+        return Collections.unmodifiableMap(pendingConversions);
+    }
+
+    /** Remove a pending conversion (actor cancel before expiry). */
+    public void removePendingConversion(String cellKey) {
+        if (pendingConversions.remove(cellKey) != null) {
+            setDirty();
+        }
+    }
+
     /**
      * Queue a conversion for the grace window: the Root Binder's ticker
      * applies it once the server tick passes expiry. Re-queueing the same

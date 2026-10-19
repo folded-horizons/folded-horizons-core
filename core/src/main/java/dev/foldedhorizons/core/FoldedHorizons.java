@@ -32,6 +32,9 @@ public class FoldedHorizons {
         ModBlocks.REGISTER.register(modEventBus);
         ModItems.REGISTER.register(modEventBus);
         ModBlockEntities.REGISTER.register(modEventBus);
+        // Capability wiring: breacher's FE buffer (energy storage) is
+        // registered by the static hook below.
+        modEventBus.register(dev.foldedhorizons.core.machine.BreacherBlock.class);
         // Materialization/claim/identity SPIs default to no-op + built-in
         // parties; foldedhorizons-ftb overrides them via
         // TeamIdentityProvider.register / ClaimAdapter.register at its own

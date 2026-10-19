@@ -1,37 +1,61 @@
 package dev.foldedhorizons.core.machine;
 
-import net.minecraft.world.level.block.Block;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
- * Root Binder — the ownership machine, designed as a GregTech CEu Modern
- * singleblock. Lives INSIDE the shared (team) space; operates on the
- * inserting player, no items involved.
- *
- * <p>Designed behavior:</p>
- * <ul>
- *   <li>Merge (personal → team): converts the player's personal space into
- *       the team space if the team has none. Registry entry and FTB Chunks
- *       claims transfer to the team UUID. One-way.</li>
- *   <li>Purge (personal → team's space): if the team already has a space,
- *       the player demolishes their personal cell and their destination
- *       re-addresses to the team space.</li>
- *   <li>Split (team → personal): a member leaving the team reclaims a fresh
- *       personal space; the team space stays with the team.</li>
- *   <li>30-second grace window: a confirmed conversion schedules the switch
- *       30 s out. During the window the breacher refuses entry to the
- *       affected space and the binder shows a countdown. At expiry the
- *       registry switch applies and claims are re-registered, so ownership
- *       and protection never diverge.</li>
- * </ul>
- *
- * <p>TODO: implement conversion scheduling + grace-window state in a block
- * entity, hook FTB Chunks claim transfer. Currently an inert block
- * placeholder.</p>
+ * Root Binder — the ownership machine's block, core-alone form. Same
+ * interaction model as the breacher (no GUI in core; see
+ * {@link RootBinderBlockEntity}): right-click cycles the operation,
+ * sneak-right-click confirms/schedules it. Countdown and refusals surface
+ * as action-bar messages.
  */
-public class RootBinderBlock extends Block {
+public class RootBinderBlock extends BaseEntityBlock {
 
     public RootBinderBlock(Properties properties) {
         super(properties);
-        // TODO: conversion GUI (merge / purge / split) + grace countdown.
+    }
+
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    @Override
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new RootBinderBlockEntity(pos, state);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos,
+            Player player, BlockHitResult hit) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (!(be instanceof RootBinderBlockEntity binder)) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
+        if (player instanceof ServerPlayer serverPlayer) {
+            if (player.isShiftKeyDown()) {
+                binder.confirmOperation(serverPlayer);
+            } else {
+                binder.cycleOperation(serverPlayer);
+            }
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<? extends BaseEntityBlock> codec() {
+        return simpleCodec(RootBinderBlock::new);
     }
 }
