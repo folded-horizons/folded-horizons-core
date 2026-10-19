@@ -184,6 +184,40 @@ public class PocketRegistry extends SavedData {
         return teamTierCursor.get(teamTierKey(teamUuid, dimension));
     }
 
+    /**
+     * Every materialized UNSTABLE cell in {@code dimension}, keyed "x,z".
+     * The collapse watcher iterates this per tick; the map is a live view of
+     * the registry, so entries deleted mid-iteration are seen by later ticks.
+     */
+    public Map<String, PocketInstance> unstableCells(ResourceKey<Level> dimension) {
+        Map<String, PocketInstance> result = new HashMap<>();
+        Map<String, PocketInstance> dim = cells.get(dimension);
+        if (dim == null) {
+            return result;
+        }
+        for (Map.Entry<String, PocketInstance> e : dim.entrySet()) {
+            if (e.getValue().type() == PocketType.UNSTABLE && e.getValue().materialized()) {
+                result.put(e.getKey(), e.getValue());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Mark {@code cellKey} as "dying": the collapse sweep is starting. The
+     * flag persists (it rides the saved instance) so a crash mid-sweep is
+     * repaired on restart by re-sweeping dying cells.
+     */
+    public PocketInstance markDying(ResourceKey<Level> dimension, String cellKey) {
+        PocketInstance instance = get(dimension, cellKey);
+        if (instance == null || instance.dying()) {
+            return instance;
+        }
+        PocketInstance dying = instance.asDying();
+        put(dimension, dying);
+        return dying;
+    }
+
     // ------------------------------------------------------------------
     // Allocation
     // ------------------------------------------------------------------
