@@ -37,7 +37,7 @@ public final class PocketChunkLoader {
      * constructor alongside the other {@code @EventBusSubscriber} wiring.
      */
     public static void register() {
-        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(RearmHook.class);
+        net.neoforged.neoforge.common.NeoForge.EVENT_BUS.register(new RearmHook());
     }
 
     /** Whether {@code pos} in {@code level} is inside a pocket cell region. */
@@ -77,6 +77,7 @@ public final class PocketChunkLoader {
     public static final class RearmHook {
         private long nextRun = 0;
 
+        @net.neoforged.bus.api.SubscribeEvent
         public void onServerTick(net.neoforged.neoforge.event.tick.ServerTickEvent.Post event) {
             long now = event.getServer().overworld().getGameTime();
             if (now < nextRun) {

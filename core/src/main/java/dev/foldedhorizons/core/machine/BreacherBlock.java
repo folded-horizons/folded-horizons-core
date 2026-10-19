@@ -64,6 +64,7 @@ public class BreacherBlock extends BaseEntityBlock {
     }
 
     /** Energy capability: the breacher's internal FE buffer, all sides. */
+    @net.neoforged.bus.api.SubscribeEvent
     static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
                 net.neoforged.neoforge.capabilities.Capabilities.EnergyStorage.BLOCK,
