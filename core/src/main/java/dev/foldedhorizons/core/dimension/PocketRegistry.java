@@ -20,6 +20,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import dev.foldedhorizons.core.event.ModEvents;
+
 import static dev.foldedhorizons.core.dimension.PocketInstance.OwnerKind;
 
 /**
@@ -251,6 +253,8 @@ public class PocketRegistry extends SavedData {
             dimCells.put(key, instance);
             registerOwner(owner, key);
             setDirty();
+            // cell_allocated: registry insert succeeded (build-order 12).
+            ModEvents.cellAllocated(instance, owner);
             return instance;
         }
         return null;
@@ -297,6 +301,8 @@ public class PocketRegistry extends SavedData {
             dimCells.put(key, instance);
             registerOwner(teamUuid, key);
             setDirty();
+            // cell_allocated: registry insert succeeded (build-order 12).
+            ModEvents.cellAllocated(instance, teamUuid);
             return instance;
         }
         return null;

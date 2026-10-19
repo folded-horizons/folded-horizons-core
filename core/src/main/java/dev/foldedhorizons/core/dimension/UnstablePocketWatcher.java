@@ -3,6 +3,7 @@ package dev.foldedhorizons.core.dimension;
 import java.util.ArrayList;
 import java.util.List;
 import dev.foldedhorizons.core.claim.ClaimAdapters;
+import dev.foldedhorizons.core.event.ModEvents;
 import dev.foldedhorizons.core.machine.PocketOps;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -117,6 +118,8 @@ public final class UnstablePocketWatcher {
         sweepInterior(level, pocket);
         registry.remove(pocket.dimension(), pocket.cellKey());
         ClaimAdapters.get().unclaim(level, pocket);
+        // unstable_pocket_collapsed: sweep + removal complete (build-order 12).
+        ModEvents.unstablePocketCollapsed(level, pocket.cellKey(), pocket.owner());
     }
 
     /** Air-fill of the interior bounds except shell blocks and container blocks. */

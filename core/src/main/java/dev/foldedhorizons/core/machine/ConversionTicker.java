@@ -3,6 +3,7 @@ package dev.foldedhorizons.core.machine;
 import java.util.Map;
 import java.util.UUID;
 import dev.foldedhorizons.core.claim.ClaimAdapters;
+import dev.foldedhorizons.core.event.ModEvents;
 import dev.foldedhorizons.core.dimension.Materializer;
 import dev.foldedhorizons.core.dimension.PocketDimensions;
 import dev.foldedhorizons.core.dimension.PocketInstance;
@@ -89,6 +90,8 @@ public final class ConversionTicker {
         registry.put(voidLevel.dimension(), merged);
         registry.transferOwnership(actor, team, cellKey);
         ClaimAdapters.get().transfer(voidLevel, merged, actor);
+        // conversion_merged: the MERGE conversion applied (build-order 12).
+        ModEvents.conversionMerged(voidLevel, cellKey, actor, team);
     }
 
     /**

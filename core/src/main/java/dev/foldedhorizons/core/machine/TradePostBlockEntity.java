@@ -174,7 +174,8 @@ public class TradePostBlockEntity extends BlockEntity {
         }
         removeFrom(input, want);
         insertAll(output, staged);
-        ModEvents.tradeExecuted(serverLevel, worldPosition.immutable());
+        ModEvents.tradeExecuted(serverLevel, worldPosition.immutable(),
+                null, null);
         return true;
     }
 
