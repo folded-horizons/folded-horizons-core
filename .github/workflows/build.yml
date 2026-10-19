@@ -33,5 +33,16 @@ jobs:
       - name: Compile core
         run: ./gradlew :core:compileJava --no-daemon
 
-      - name: Check core (tests / static checks)
+      - name: Test core (JUnit: grid math, registry, SNBT round-trip)
+        run: ./gradlew :core:test --no-daemon
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: core/build/reports/tests/test
+          if-no-files-found: ignore
+
+      - name: Check core (static checks)
         run: ./gradlew :core:check --no-daemon

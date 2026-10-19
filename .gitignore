@@ -18,3 +18,12 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Build outputs
+build/
+core/build/
+*/build/
+run/
+core/run/
+core/logs/
+core/crash-reports/

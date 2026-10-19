@@ -12,6 +12,24 @@ base {
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+// Unit tests for pure logic (grid math, SNBT round-trips, registry
+// allocation) — no game bootstrap involved, so plain JUnit 5.
+test {
+    useJUnitPlatform()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.2')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // ModDevGradle puts Minecraft/NeoForge on main's compileClasspath; the
+    // test source set does not inherit it, so tests (which touch BlockPos,
+    // ResourceKey, CompoundTag) would not resolve the game types. Copying
+    // as files is the Gradle 8+ safe form (a bare Configuration is banned).
+    testImplementation files(sourceSets.main.compileClasspath)
+    testRuntimeOnly files(sourceSets.main.runtimeClasspath)
+}
+
 neoForge {
     version = project.neo_version
 
