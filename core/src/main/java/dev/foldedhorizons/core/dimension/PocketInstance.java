@@ -38,6 +38,10 @@ import net.minecraft.world.level.Level;
  * @param createdAt       epoch millis when the pocket was allocated
  * @param dying           crash-safety flag: the UNSTABLE collapse sweep was
  *                        marked but not finished (re-swept on server start)
+ * @param expansionStage  index into the expansion ladder this pocket last
+ *                        reached; 0 = fresh (base size), N = N expansions
+ *                        applied (see walls-expansion.md "Root space
+ *                        expansion")
  */
 public record PocketInstance(
         PocketType type,
@@ -51,7 +55,8 @@ public record PocketInstance(
         BlockPos returnPoint,
         ResourceKey<Level> returnDimension,
         long createdAt,
-        boolean dying
+        boolean dying,
+        int expansionStage
 ) {
 
     /** Whether the owner UUID denotes a player or an FTB team. */
@@ -94,6 +99,8 @@ public record PocketInstance(
     static final String KEY_CREATED = "created";
     /** SNBT key for the crash-safety dying flag (UNSTABLE collapse sweep in progress). */
     static final String KEY_DYING = "dying";
+    /** SNBT key for the expansion-ladder stage index (walls-expansion.md). */
+    static final String KEY_EXPANSION_STAGE = "expansion_stage";
 
     public PocketInstance {
         if (body == null) {
@@ -113,7 +120,7 @@ public record PocketInstance(
             int exhaustIndex, BlockPos returnPoint, ResourceKey<Level> returnDimension,
             long createdAt) {
         this(type, dimension, cellKey, owner, ownerKind, materialized, body,
-                exhaustIndex, returnPoint, returnDimension, createdAt, false);
+                exhaustIndex, returnPoint, returnDimension, createdAt, false, 0);
     }
 
     /**
@@ -133,7 +140,14 @@ public record PocketInstance(
     public PocketInstance asDying() {
         return new PocketInstance(type, dimension, cellKey, owner, ownerKind,
                 materialized, body, exhaustIndex, returnPoint, returnDimension,
-                createdAt, true);
+                createdAt, true, expansionStage);
+    }
+
+    /** Copy with the next expansion stage reached. */
+    public PocketInstance withExpansionStage(int newStage) {
+        return new PocketInstance(type, dimension, cellKey, owner, ownerKind,
+                materialized, body, exhaustIndex, returnPoint, returnDimension,
+                createdAt, dying, newStage);
     }
 
     /**
@@ -142,7 +156,8 @@ public record PocketInstance(
      */
     public PocketInstance asMaterialized() {
         return new PocketInstance(type, dimension, cellKey, owner, ownerKind,
-                true, body, exhaustIndex, returnPoint, returnDimension, createdAt);
+                true, body, exhaustIndex, returnPoint, returnDimension, createdAt,
+                dying, expansionStage);
     }
 
     /**
@@ -151,7 +166,8 @@ public record PocketInstance(
      */
     public PocketInstance withOwner(UUID newOwner, OwnerKind newKind) {
         return new PocketInstance(type, dimension, cellKey, newOwner, newKind,
-                materialized, body, exhaustIndex, returnPoint, returnDimension, createdAt);
+                materialized, body, exhaustIndex, returnPoint, returnDimension,
+                createdAt, dying, expansionStage);
     }
 
     /**
@@ -159,7 +175,8 @@ public record PocketInstance(
      */
     public PocketInstance withReturnPoint(BlockPos newReturn, ResourceKey<Level> newReturnDim) {
         return new PocketInstance(type, dimension, cellKey, owner, ownerKind,
-                materialized, body, exhaustIndex, newReturn, newReturnDim, createdAt);
+                materialized, body, exhaustIndex, newReturn, newReturnDim,
+                createdAt, dying, expansionStage);
     }
 
     /**
@@ -167,7 +184,8 @@ public record PocketInstance(
      */
     public PocketInstance withExhaustIndex(int newExhaustIndex) {
         return new PocketInstance(type, dimension, cellKey, owner, ownerKind,
-                materialized, body, newExhaustIndex, returnPoint, returnDimension, createdAt);
+                materialized, body, newExhaustIndex, returnPoint, returnDimension,
+                createdAt, dying, expansionStage);
     }
 
     /**
@@ -192,6 +210,9 @@ public record PocketInstance(
         tag.putLong(KEY_CREATED, createdAt);
         if (dying) {
             tag.putBoolean(KEY_DYING, true);
+        }
+        if (expansionStage != 0) {
+            tag.putInt(KEY_EXPANSION_STAGE, expansionStage);
         }
         return tag;
     }
@@ -230,9 +251,10 @@ public record PocketInstance(
         }
         long createdAt = tag.contains(KEY_CREATED) ? tag.getLong(KEY_CREATED) : 0L;
         boolean dying = tag.getBoolean(KEY_DYING);
+        int expansionStage = tag.contains(KEY_EXPANSION_STAGE) ? tag.getInt(KEY_EXPANSION_STAGE) : 0;
         // cellKey is rebound from the registry's map key on load.
         return new PocketInstance(type, dimension, "", owner, ownerKind,
                 materialized, body, exhaustIndex, returnPoint, returnDimension,
-                createdAt, dying);
+                createdAt, dying, expansionStage);
     }
 }

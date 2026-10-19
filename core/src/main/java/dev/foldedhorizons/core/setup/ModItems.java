@@ -1,5 +1,6 @@
 package dev.foldedhorizons.core.setup;
 
+import dev.foldedhorizons.core.item.ExpansionLeverItem;
 import dev.foldedhorizons.core.item.TempKeyItem;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -47,4 +48,12 @@ public final class ModItems {
     /** Stone scrap — wall_metal chip filler when no pickaxe is used. */
     public static final DeferredHolder<Item, Item> STONE_SCRAP =
             REGISTER.registerSimpleItem("stone_scrap");
+
+    /**
+     * Expansion Lever — grows a root/repeatable pocket to the next rung of
+     * the {@code pocket.expansionThresholds} ladder (build-order 11).
+     */
+    public static final DeferredHolder<Item, ExpansionLeverItem> EXPANSION_LEVER =
+            REGISTER.register("expansion_lever",
+                    () -> new ExpansionLeverItem(new Item.Properties().stacksTo(1)));
 }

@@ -3,6 +3,8 @@ package dev.foldedhorizons.core.dimension;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Block;
 
 /**
  * Static grid allocator for pocket cells. One custom void dimension hosts
@@ -103,6 +105,56 @@ public final class PocketGrid {
         public boolean contains(int worldX, int worldZ) {
             return worldX >= minX && worldX <= maxX && worldZ >= minZ && worldZ <= maxZ;
         }
+    }
+
+    /**
+     * Shell-growing expansion (walls-expansion.md "Root space expansion"):
+     * grow one cell's interior from its current size to {@code newSize}
+     * without touching anything inside the old bounds. The difference ring
+     * (old bounds → new bounds) is swept to air except the outermost ring,
+     * which is filled with the shell block so the pocket stays sealed. Y is
+     * swept over the same window the Materializer uses (center Y − 1 to
+     * + 16) so template-placed content and the sweep agree.
+     *
+     * <p>Callers must check {@code newSize > currentSize}; equal-or-shrink
+     * calls return false without touching the world (no shrinking — the
+     * registry {@code expansion_stage} only climbs).</p>
+     *
+     * @return true if the sweep ran
+     */
+    public static boolean expandInterior(ServerLevel level, int cellX, int cellZ,
+            int currentSize, int newSize, Block shellBlock) {
+        if (newSize <= currentSize) {
+            return false;
+        }
+        Bounds oldB = interiorBounds(cellX, cellZ, currentSize);
+        Bounds newB = interiorBounds(cellX, cellZ, newSize);
+        int centerY = CENTER_Y;
+        int minY = centerY - 1;
+        int maxY = centerY + 16;
+        // Fill the outermost ring of the NEW bounds with shell, sweep the
+        // rest of the difference region (new minus old) to air.
+        for (int x = newB.minX(); x <= newB.maxX(); x++) {
+            for (int z = newB.minZ(); z <= newB.maxZ(); z++) {
+                boolean onNewEdge = x == newB.minX() || x == newB.maxX()
+                        || z == newB.minZ() || z == newB.maxZ();
+                boolean insideOld = oldB.contains(x, z);
+                if (onNewEdge) {
+                    for (int y = minY; y <= maxY; y++) {
+                        level.setBlock(new BlockPos(x, y, z),
+                                shellBlock.defaultBlockState(), Block.UPDATE_ALL);
+                    }
+                } else if (!insideOld) {
+                    for (int y = minY; y <= maxY; y++) {
+                        level.removeBlockEntity(new BlockPos(x, y, z));
+                        level.setBlock(new BlockPos(x, y, z),
+                                net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(),
+                                Block.UPDATE_ALL);
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     /**
