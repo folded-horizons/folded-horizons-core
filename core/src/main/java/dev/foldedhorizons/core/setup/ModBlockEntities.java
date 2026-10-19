@@ -4,6 +4,7 @@ import java.util.Set;
 import dev.foldedhorizons.core.machine.DimensionGenMultiblockBlockEntity;
 import dev.foldedhorizons.core.machine.BreacherBlockEntity;
 import dev.foldedhorizons.core.machine.RootBinderBlockEntity;
+import dev.foldedhorizons.core.machine.TradePostBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -38,4 +39,9 @@ public final class ModBlockEntities {
             REGISTER.register("dimension_gen_multiblock", () -> new BlockEntityType<>(
                     DimensionGenMultiblockBlockEntity::new,
                     Set.of(dev.foldedhorizons.core.setup.ModBlocks.DIMENSION_GEN.get()), null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TradePostBlockEntity>> TRADE_POST =
+            REGISTER.register("trade_post", () -> new BlockEntityType<>(
+                    TradePostBlockEntity::new,
+                    Set.of(dev.foldedhorizons.core.setup.ModBlocks.TRADE_POST.get()), null));
 }
