@@ -1,8 +1,6 @@
 # Folded Horizons Core
 
-<!-- CI badge (enable after workflow lands on GitHub):
-![Build](https://github.com/folded-horizons/folded-horizons/actions/workflows/build.yml/badge.svg)
--->
+[![Build](https://github.com/folded-horizons/folded-horizons-core/actions/workflows/build.yml/badge.svg)](https://github.com/folded-horizons/folded-horizons-core/actions/workflows/build.yml)
 
 Core companion mod for the **Folded Horizons** GregTech modpack
 (NeoForge, Minecraft **1.21.1**, NeoForge **21.1.65**).
