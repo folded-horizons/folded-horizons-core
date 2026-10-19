@@ -1,6 +1,7 @@
 package dev.foldedhorizons.core.setup;
 
 import java.util.Set;
+import dev.foldedhorizons.core.machine.DimensionGenMultiblockBlockEntity;
 import dev.foldedhorizons.core.machine.BreacherBlockEntity;
 import dev.foldedhorizons.core.machine.RootBinderBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -32,4 +33,9 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RootBinderBlockEntity>> ROOT_BINDER =
             REGISTER.register("root_binder", () -> new BlockEntityType<>(
                     RootBinderBlockEntity::new, Set.of(dev.foldedhorizons.core.setup.ModBlocks.ROOT_BINDER.get()), null));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DimensionGenMultiblockBlockEntity>> DIMENSION_GEN =
+            REGISTER.register("dimension_gen_multiblock", () -> new BlockEntityType<>(
+                    DimensionGenMultiblockBlockEntity::new,
+                    Set.of(dev.foldedhorizons.core.setup.ModBlocks.DIMENSION_GEN.get()), null));
 }
