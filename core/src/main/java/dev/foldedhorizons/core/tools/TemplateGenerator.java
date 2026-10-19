@@ -1,7 +1,6 @@
 package dev.foldedhorizons.core.tools;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.IntTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtIo;
@@ -197,7 +196,7 @@ public final class TemplateGenerator {
 
         CompoundTag build() {
             CompoundTag root = new CompoundTag();
-            root.putIntArray("size", new int[]{sx, sy, sz});
+            root.put("size", intList(sx, sy, sz));
             root.put("palette", paletteList);
             root.put("entities", new ListTag());
             root.put("blocks", blocks);
@@ -205,8 +204,23 @@ public final class TemplateGenerator {
             return root;
         }
 
-        private IntArrayTag pos(int x, int y, int z) {
-            return new IntArrayTag(new int[]{x, y, z});
+        /**
+         * A vector as {@code ListTag<TAG_INT>} — the shape
+         * {@code StructureTemplate.load} reads. It uses
+         * {@code getList("size", TAG_INT)} / {@code getList("pos", TAG_INT)},
+         * so an {@code IntArrayTag} silently reads back as an empty list, which
+         * makes every template load with size (0,0,0) and place nothing.
+         */
+        private static ListTag intList(int... values) {
+            ListTag list = new ListTag();
+            for (int value : values) {
+                list.add(IntTag.valueOf(value));
+            }
+            return list;
+        }
+
+        private ListTag pos(int x, int y, int z) {
+            return intList(x, y, z);
         }
     }
 

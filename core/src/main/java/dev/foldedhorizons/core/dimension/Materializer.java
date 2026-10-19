@@ -151,12 +151,37 @@ public final class Materializer {
                 center.getX() - size.getX() / 2,
                 center.getY(),
                 center.getZ() - size.getZ() / 2);
+        // Force the target chunks to exist before writing. A structure placed
+        // into an unloaded chunk is silently discarded — the block writes land
+        // on a proto-chunk that is later regenerated from the (empty) noise
+        // generator. Pocket cells are normally still unloaded at the point
+        // their template is placed, so this is the common path, not an edge
+        // case: without it materialization appears to succeed and the pocket
+        // stays void.
+        loadRegion(level, corner, size);
         StructurePlaceSettings settings = new StructurePlaceSettings()
                 .setMirror(Mirror.NONE)
                 .setRotation(Rotation.NONE)
                 .setIgnoreEntities(true);
         template.get().placeInWorld(level, corner, corner, settings,
                 RandomSource.create(), 2);
+    }
+
+    /**
+     * Force every chunk covering the box at {@code corner} of {@code size} to
+     * load, so a subsequent template placement is actually retained.
+     */
+    private static void loadRegion(ServerLevel level, BlockPos corner,
+            net.minecraft.core.Vec3i size) {
+        int minChunkX = corner.getX() >> 4;
+        int minChunkZ = corner.getZ() >> 4;
+        int maxChunkX = (corner.getX() + size.getX() - 1) >> 4;
+        int maxChunkZ = (corner.getZ() + size.getZ() - 1) >> 4;
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+                level.getChunk(chunkX, chunkZ);
+            }
+        }
     }
 
     /** Template id for a pocket type; null when the type ships no template. */
@@ -176,6 +201,14 @@ public final class Materializer {
         PocketGrid.Bounds bounds = PocketGrid.interiorBounds(cell.x(), cell.z(),
                 interiorSize());
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
+        // Chunks must be loaded for the read to mean anything: an unloaded
+        // chunk answers AIR for every position, which would wrongly report an
+        // already-built pocket as empty and re-place its template over it.
+        loadRegion(level, new BlockPos(bounds.minX(), SCAN_MIN_Y, bounds.minZ()),
+                new net.minecraft.core.Vec3i(
+                        bounds.maxX() - bounds.minX() + 1,
+                        SCAN_MAX_Y - SCAN_MIN_Y + 1,
+                        bounds.maxZ() - bounds.minZ() + 1));
         for (int x = bounds.minX(); x <= bounds.maxX(); x++) {
             for (int z = bounds.minZ(); z <= bounds.maxZ(); z++) {
                 for (int y = SCAN_MIN_Y; y <= SCAN_MAX_Y; y++) {
@@ -191,6 +224,9 @@ public final class Materializer {
 
     /** Whether the square of half-width {@code half} around {@code center} has any non-air block. */
     private static boolean regionHasBlocks(ServerLevel level, BlockPos center, int half) {
+        loadRegion(level,
+                new BlockPos(center.getX() - half, SCAN_MIN_Y, center.getZ() - half),
+                new net.minecraft.core.Vec3i(half * 2 + 1, SCAN_MAX_Y - SCAN_MIN_Y + 1, half * 2 + 1));
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int x = center.getX() - half; x <= center.getX() + half; x++) {
             for (int z = center.getZ() - half; z <= center.getZ() + half; z++) {

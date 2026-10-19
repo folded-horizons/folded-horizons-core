@@ -28,6 +28,9 @@ public class FoldedHorizons {
 
     public static final String MOD_ID = "foldedhorizons";
 
+    public static final org.slf4j.Logger LOG =
+            com.mojang.logging.LogUtils.getLogger();
+
     public FoldedHorizons(IEventBus modEventBus, ModContainer modContainer) {
         ModBlocks.REGISTER.register(modEventBus);
         ModItems.REGISTER.register(modEventBus);
