@@ -1,5 +1,6 @@
 plugins {
     id 'java-library'
+    id 'maven-publish'
     id 'net.neoforged.moddev' version '1.0.21'
 }
 
@@ -55,6 +56,26 @@ neoForge {
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+// The integration modules (folded-horizons-ae2/-gt/-ftb) are separate
+// repos that depend on `dev.foldedhorizons:foldedhorizons:<version>`.
+// `publishToMavenLocal` is the development path (module devs run this
+// once after changing core); tagged releases also publish to GitHub
+// Packages so module CI can resolve the artifact without a checkout.
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifactId = mod_id
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = 'localBuild'
+            url = layout.buildDirectory.dir('repo')
+        }
+    }
+}
 
 // Regenerates data/foldedhorizons/structure/{starter_cell,lobby,meteorite_pocket}.nbt
 // in place. The templates live in resources (datapack-overridable); rerun
