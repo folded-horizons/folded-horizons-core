@@ -6,6 +6,7 @@ import dev.foldedhorizons.core.dimension.PocketDimensions;
 import dev.foldedhorizons.core.dimension.PocketInstance;
 import dev.foldedhorizons.core.dimension.PocketRegistry;
 import dev.foldedhorizons.core.dimension.PocketType;
+import dev.foldedhorizons.core.dimension.UnstablePocketWatcher;
 import dev.foldedhorizons.core.identity.BuiltInPartyRegistry;
 import dev.foldedhorizons.core.identity.TeamIdentityProvider;
 import net.minecraft.server.MinecraftServer;
@@ -40,6 +41,7 @@ public final class ServerLifecycle {
         // (solo players resolve without it; party members need the loaded map).
         TeamIdentityProvider.register(BuiltInPartyRegistry.getOrCreate(server));
         Materializer.materializeLobby(voidSpace);
+        UnstablePocketWatcher.sweepDyingCells(server, registry);
         for (PocketInstance pocket : registry.cellsIn(PocketDimensions.VOID_SPACE).values()) {
             if (pocket.type() == PocketType.ROOT && !pocket.materialized()) {
                 Materializer.materialize(registry, voidSpace, pocket);

@@ -51,6 +51,9 @@ public record PocketInstance(
         long createdAt
 ) {
 
+    /** Whether the collapse sweep for this UNSTABLE cell was interrupted (crash recovery re-sweep). */
+    private final boolean dying;
+
     /** Whether the owner UUID denotes a player or an FTB team. */
     public enum OwnerKind {
         PLAYER,
@@ -89,6 +92,8 @@ public record PocketInstance(
     static final String KEY_RETURN_POS = "return_pos";
     /** SNBT key for the allocation timestamp (epoch millis). */
     static final String KEY_CREATED = "created";
+    /** SNBT key for the crash-safety dying flag (UNSTABLE collapse sweep in progress). */
+    static final String KEY_DYING = "dying";
 
     public PocketInstance {
         if (body == null) {
@@ -97,6 +102,26 @@ public record PocketInstance(
         if (returnPoint == null) {
             returnDimension = null;
         }
+        this.dying = false;
+    }
+
+    /** Full-authority constructor: the only way to produce a dying record. */
+    public PocketInstance(PocketType type, ResourceKey<Level> dimension, String cellKey,
+            UUID owner, OwnerKind ownerKind, boolean materialized, String body,
+            int exhaustIndex, BlockPos returnPoint, ResourceKey<Level> returnDimension,
+            long createdAt, boolean dying) {
+        this.type = type;
+        this.dimension = dimension;
+        this.cellKey = cellKey;
+        this.owner = owner;
+        this.ownerKind = ownerKind;
+        this.materialized = materialized;
+        this.body = body;
+        this.exhaustIndex = exhaustIndex;
+        this.returnPoint = returnPoint;
+        this.returnDimension = returnDimension;
+        this.createdAt = createdAt;
+        this.dying = dying;
     }
 
     /**
@@ -105,6 +130,18 @@ public record PocketInstance(
      */
     public boolean hasBody() {
         return !body.isEmpty();
+    }
+
+    /** Crash-safety flag: the collapse sweep was marked but not finished. */
+    public boolean dying() {
+        return dying;
+    }
+
+    /** Copy with {@code dying = true} — the collapse sweep is about to run. */
+    public PocketInstance asDying() {
+        return new PocketInstance(type, dimension, cellKey, owner, ownerKind,
+                materialized, body, exhaustIndex, returnPoint, returnDimension,
+                createdAt, true);
     }
 
     /**
@@ -161,6 +198,9 @@ public record PocketInstance(
             tag.putLong(KEY_RETURN_POS, returnPoint.asLong());
         }
         tag.putLong(KEY_CREATED, createdAt);
+        if (dying) {
+            tag.putBoolean(KEY_DYING, true);
+        }
         return tag;
     }
 
@@ -197,8 +237,10 @@ public record PocketInstance(
             returnPoint = BlockPos.of(tag.getLong(KEY_RETURN_POS));
         }
         long createdAt = tag.contains(KEY_CREATED) ? tag.getLong(KEY_CREATED) : 0L;
+        boolean dying = tag.getBoolean(KEY_DYING);
         // cellKey is rebound from the registry's map key on load.
         return new PocketInstance(type, dimension, "", owner, ownerKind,
-                materialized, body, exhaustIndex, returnPoint, returnDimension, createdAt);
+                materialized, body, exhaustIndex, returnPoint, returnDimension,
+                createdAt, dying);
     }
 }
