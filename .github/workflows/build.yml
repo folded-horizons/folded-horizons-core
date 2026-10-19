@@ -33,7 +33,7 @@ jobs:
       - name: Compile core
         run: ./gradlew :core:compileJava --no-daemon
 
-      - name: Test core (JUnit: grid math, registry, SNBT round-trip)
+      - name: 'Test core (JUnit: grid math, registry, SNBT round-trip)'
         run: ./gradlew :core:test --no-daemon
 
       - name: Upload test report
