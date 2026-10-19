@@ -36,6 +36,8 @@ import net.minecraft.world.level.Level;
  *                        the overworld); null exactly when
  *                        {@code returnPoint} is null
  * @param createdAt       epoch millis when the pocket was allocated
+ * @param dying           crash-safety flag: the UNSTABLE collapse sweep was
+ *                        marked but not finished (re-swept on server start)
  */
 public record PocketInstance(
         PocketType type,
@@ -48,11 +50,9 @@ public record PocketInstance(
         int exhaustIndex,
         BlockPos returnPoint,
         ResourceKey<Level> returnDimension,
-        long createdAt
+        long createdAt,
+        boolean dying
 ) {
-
-    /** Whether the collapse sweep for this UNSTABLE cell was interrupted (crash recovery re-sweep). */
-    private final boolean dying;
 
     /** Whether the owner UUID denotes a player or an FTB team. */
     public enum OwnerKind {
@@ -102,26 +102,18 @@ public record PocketInstance(
         if (returnPoint == null) {
             returnDimension = null;
         }
-        this.dying = false;
     }
 
-    /** Full-authority constructor: the only way to produce a dying record. */
+    /**
+     * Convenience constructor for records without a dying flag (defaults
+     * to false) — the canonical factory used by allocation code paths.
+     */
     public PocketInstance(PocketType type, ResourceKey<Level> dimension, String cellKey,
             UUID owner, OwnerKind ownerKind, boolean materialized, String body,
             int exhaustIndex, BlockPos returnPoint, ResourceKey<Level> returnDimension,
-            long createdAt, boolean dying) {
-        this.type = type;
-        this.dimension = dimension;
-        this.cellKey = cellKey;
-        this.owner = owner;
-        this.ownerKind = ownerKind;
-        this.materialized = materialized;
-        this.body = body;
-        this.exhaustIndex = exhaustIndex;
-        this.returnPoint = returnPoint;
-        this.returnDimension = returnDimension;
-        this.createdAt = createdAt;
-        this.dying = dying;
+            long createdAt) {
+        this(type, dimension, cellKey, owner, ownerKind, materialized, body,
+                exhaustIndex, returnPoint, returnDimension, createdAt, false);
     }
 
     /**
